@@ -3,31 +3,39 @@ import pickle
 from os import path
 import os
 pygame.init()
-clock = pygame.time.Clock()
+
 fps = 60
 # gameWindow
 screen_width= 1000     # default = 1100
 screen_height=800      # default = 800
-tile_Size=100          #default 100
+tile_Size=50          #default 100
 
-screen = pygame.display.set_mode((screen_width,screen_height))
+screen = pygame.display.set_mode((screen_width,screen_height+150))
 pygame.display.set_caption("Level Maker")
 
+img_List=[]
 #load images
 bg_img=pygame.image.load('Images/bg_img.jpeg')
-entries = os.listdir('./Images')
-img_List=[]
-for i in range(1,len(entries)):
-    c_path='Images/'
-    c_path+=entries[i]
-    curr_img=pygame.image.load(c_path)
-    # print(entries[i])
-    img_List.append(curr_img)
-
+wall_idx=0
+def loadImages():
+    entries = os.listdir('./Images')
+    # print(entries[1])
+    for i in range(0,len(entries)):
+        if entries[i]=='bg_img.jpeg' or entries[i] == '.DS_Store':
+            continue 
+        if entries[i] == 'SideWall.png':
+            wall_idx=len(img_List)
+        c_path='Images/'
+        c_path+=entries[i]
+        curr_img=pygame.image.load(c_path)
+        # print(entries[i])
+        img_List.append(curr_img)
+    print("Number of images loaded:"+ str(len(img_List)))
+loadImages()
 
 #define game variables
 clicked = False
-level = 1
+level = 2
 
 white = (255,255,255)
 green = (144,201,120)
@@ -46,11 +54,11 @@ for row in range(N_row):
 #create Boundary
 # row boundary
 for x in range(N_col):
-    world_data[0][x]= 1 #black boundary
-    world_data[N_row-1][x]=2 # grass boundary
+    world_data[0][x]= wall_idx #black boundary
+    world_data[N_row-1][x]= 2 # grass boundary
 for y in range(N_row):
-    world_data[y][0] = 1
-    world_data[y][N_col-1] = 1
+    world_data[y][0] = wall_idx
+    world_data[y][N_col-1] = wall_idx
 
 def draw_text(text,font,col,x,y):
     img = font.render(text, True, col)
@@ -75,7 +83,6 @@ def drawGridWithTileSize(tile_size):
 def draw_world():
     for row in range(N_row):
         for col in range(N_col):
-            if world_data[row][col] > 0 :
                 # traverse over all the images and see if it matches any image
                 for i in range(len(img_List)):
                     if world_data[row][col] == i+1:
@@ -88,6 +95,7 @@ class Button():
         self.rect = self.image.get_rect()
         self.rect.topleft= (x,y)
         self.clicked = False
+
     def draw(self):
         action = False # ?
         # get mouse position 
@@ -109,13 +117,13 @@ loadBtn = pygame.image.load('Buttons/loadBtn.png')
 saveBtn = pygame.image.load('Buttons/saveBtn.png')
 
 # create load and save buttons
-save_button = Button(screen_width // 2 - 150, screen_height-80,saveBtn)
-load_button = Button(screen_width // 2 + 50, screen_height-80, loadBtn)
+save_button = Button(screen_width // 2 - 150, screen_height+40,saveBtn)
+load_button = Button(screen_width // 2 + 50, screen_height+40, loadBtn)
 
 run = True
 
 while run:
-    clock.tick(fps) # ?
+    # clock.tick(fps) # ?
 
     #draw background
     screen.fill(green)
@@ -134,11 +142,11 @@ while run:
             world_data = pickle.load(pickle_in)
 
     draw_world()
-    drawGridWithTileSize(tile_Size)
+    # drawGridWithTileSize(tile_Size)
 
     #text showing current level
-    draw_text(f'Level: {level}', font, white, tile_Size, screen_height - 60)
-    draw_text('Press UP or DOWN to change level', font, white, tile_Size, screen_height - 40)
+    draw_text(f'Level: {level}', font, white, tile_Size, screen_height+70 )
+    draw_text('Press UP or DOWN to change level', font, white, tile_Size, screen_height+110)
 
     for event in pygame.event.get():
         # quit game
@@ -152,6 +160,8 @@ while run:
             x = pos[0] // tile_Size
             y = pos[1] // tile_Size
             # check that the coordinates are within the tile area
+            print('Clicked mouse button')
+            print(str(x)+" , "+str(y))
             if x < N_col and y < N_row :
                 if pygame.mouse.get_pressed()[0] == 1:
                     world_data[y][x] = (world_data[y][x]+1)%(len(img_List)+1) # will cycle over all the images
@@ -159,15 +169,15 @@ while run:
                     world_data[y][x] -= 1
                     if(world_data[y][x]<0):
                         world_data[y][x]=len(img_List)
-            if event.type == pygame.MOUSEBUTTONUP:
-                clicked = False
+        if event.type == pygame.MOUSEBUTTONUP:
+            clicked = False
 		#up and down key presses to change level number
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 level += 1
-            elif event.key == pygame.K_DOWN and level > 1:
+            elif event.key == pygame.K_DOWN and level > 2:
                 level -= 1
     #update game display window
     pygame.display.update()
-    
+
 pygame.quit()          
