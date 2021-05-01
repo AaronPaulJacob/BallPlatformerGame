@@ -5,6 +5,8 @@ import os
 pygame.init()
 level=1
 
+clock = pygame.time.Clock()
+fps = 60
 
 # gameWindow
 screen_width= 1000     # default = 1100
@@ -77,6 +79,21 @@ class World():
 
 class Player():
     def __init__(self, x ,y):
+        # creating a series of images for moving animation 
+        self.images_right = []
+        self.images_left = []
+        self.index=0
+        self.counter=0 # speed of player animaion
+        for num in range(1,5):
+            img_right = pygame.image.load(f'img/redBall{num}.png')
+            img_right = pygame.transform.scale(img_right,(tile_Size,tile_Size))
+            img_left = pygame.transform.flip(img_right, True,False) # flip the image across x axis but not across y axis
+            self.images_right.append(img_right)
+            self.images_left.append(img_left)
+        self.image = self.images_right[self.index]
+        self.direction = 0
+        #************************ end of animation
+              
         img = pygame.image.load('Images/red_ball.png')
         self.image = pygame.transform.scale(img,(tile_Size,tile_Size))
         self.rect= self.image.get_rect()
@@ -88,6 +105,7 @@ class Player():
     def update(self):
         dx = 0
         dy = 0
+        walk_cooldown = 20
         #get keypresses
         key = pygame.key.get_pressed()
         if key[pygame.K_SPACE] and self.jumped == False :  # to allow only 1 jump
@@ -95,11 +113,31 @@ class Player():
             self.jumped = True 
         if key[pygame.K_SPACE] ==  False: 
             self.jumped = False
-
         if key[pygame.K_LEFT]:
             dx -= 5
+            self.direction = -1
+            self.counter += 1   # cycle through images only when the left or right keys are pressed 
+            # if counter is incremented and exceedds the walk_cooldown only then the image index will be incremented
         if key[pygame.K_RIGHT]:
             dx += 5
+            self.counter += 1
+            self.direction = 1
+        if key[pygame.K_LEFT] == False or key[pygame.K_RIGHT] == False:
+            self.counter=0
+            if self. direction == 1:
+                self.image = self.images_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_left[self.index]
+            self.index=0    # so that animation returns to begining image
+            
+        #handle animation
+        if self.counter > walk_cooldown:
+            self.counter=0
+            self.index =(self.index+1)%len(self.images_right) # cycling through the images
+            if self. direction == 1:
+                self.image = self.images_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_left[self.index]
         #calculate new player position and check collision at new position 
 
         #adding gravity
@@ -107,13 +145,14 @@ class Player():
         if self.vel_y >10:
             self.vel_y=10 # setting a limit to gravity i.e. falling down
         dy += self.vel_y
+        
         #check collision
 
         #update player coordinates
-        # print("shift")
         self.rect.x += dx
         self.rect.y += dy
 
+        # checking player does not fall of the screen due to gravity
         if self.rect.bottom > screen_height-tile_Size :
             self.rect.bottom = screen_height-tile_Size
             dy=0
@@ -128,7 +167,10 @@ player = Player(2*tile_Size,screen_height-2*tile_Size)
 run = True
 count = 0
 print("Openeing Game Window")
+
 while run:
+    clock.tick(fps)
+
     #draw background
     screen.blit(bg_img,(0,0))
     count +=1
