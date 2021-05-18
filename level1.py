@@ -78,7 +78,7 @@ class World():
             img = tile[0]
             pos = tile[1]
             screen.blit(img,pos)
-            pygame.draw.rect(screen,(255,255,255),pos,2)
+            # pygame.draw.rect(screen,(255,255,255),pos,2)
 
 class Player():
     def __init__(self, x ,y):
@@ -187,7 +187,7 @@ class Player():
 
         #draw player on screen
         screen.blit(self.image,self.rect)
-        pygame.draw.rect(screen,(255,255,255),self.rect,2)
+        # pygame.draw.rect(screen,(255,255,255),self.rect,2)
 
 world = World(world_data)
 player = Player(2*tile_Size,screen_height-2*tile_Size)        
