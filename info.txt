@@ -1,0 +1,5 @@
+5 -> enemies, sprite class
+6-> game over and dead animation
+
+Level 1 :
+    1,2,3,4 
