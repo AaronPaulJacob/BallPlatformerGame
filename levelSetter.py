@@ -2,6 +2,7 @@ import pygame
 import pickle
 from os import path
 import os
+from pygame import gfxdraw
 pygame.init()
 
 fps = 60
@@ -78,6 +79,8 @@ def drawGridWithTileSize(tile_size):
         start_pos=(0,tile_size*(i+1))
         end_pos=(screen_width,tile_size*(i+1))
         pygame.draw.line(screen,white,start_pos,end_pos,1)
+        DDA_DrawLine(0,tile_size*(i+1),screen_width,tile_size*(i+1))
+        
 
 
 def draw_world():
@@ -88,7 +91,49 @@ def draw_world():
                     if world_data[row][col] == i+1:
                         img = pygame.transform.scale(img_List[i],(tile_Size,tile_Size))
                         screen.blit(img,(col*tile_Size,row*tile_Size)) 
+def Brehsens(x1,y1,x2, y2):  
+  
+    m_new = 2 * (y2 - y1)  
+    slope_error_new = m_new - (x2 - x1) 
+  
+    y=y1 
+    for x in range(x1,x2+1):  
+      
+        # gfxdraw.pixel(win,round(x),round(y),white)
+  
+  
+        # Add slope to increment angle formed  
+        slope_error_new =slope_error_new + m_new  
+  
+        # Slope error reached limit, time to  
+        # increment y and update slope error.  
+        if (slope_error_new >= 0):  
+            y=y+1
+            slope_error_new =slope_error_new - 2 * (x2 - x1)  
+          
 
+def DDA_DrawLine(x1,y1,x2,y2):
+	dx=x2-x1
+	dy=y2-y1
+	abs_dx=abs(dx)
+	abs_dy=abs(dy)
+	steps=10
+	if abs_dx>abs_dy:
+		steps=abs_dx
+	else:
+		steps=abs_dy
+
+	x_inc = dx/float(steps)
+	y_inc = dy/float(steps)
+	# gfxdraw.pixel(win,round(x1),round(y1),white)
+	x=x1
+	y=y1
+	for i in range(steps):
+		x+= x_inc
+		y+= y_inc
+		# gfxdraw.pixel(win,round(x),round(y),white)
+	     
+  
 class Button():
     def __init__(self, x,y,image):
         self.image = image

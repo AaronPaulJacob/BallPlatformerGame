@@ -2,26 +2,83 @@ import pygame
 import pickle
 from os import path
 import os
+import subprocess
 pygame.init()
-level=1
-
+level=3
+max_levels=3
 clock = pygame.time.Clock()
-fps = 80
+fps = 60
+# 0: platform (6).png
+# 1: tred_ball.png
+# 2: Crate.png
+# 3: platform (7).png
+# 4: sCactus (3).png
+# 5: platform (12).png
+# 6: platform (1).png
+# 7: sCactus (2).png
+# 8: Block.png
+# 9: Stone.png
+# 10: platform (10).png
+# 11: platform (2).png
+# 12: platform (3).png
+# 13: platform (11).png
+# 14: exit.png
+# 15: platform (4).png
+# 16: platform (8).png
+# 17: platform (9).png
+# 18: coin.png
+# 19: platform (5).png
+world_level_3=[[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 19, 19, 0, 0, 0, 0, 0, 0, 0, 0, 19, 19, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 11, 6, 0, 0, 0, 0, 0, 5, 0, 0, 7, 12, 3], 
+               [3, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 14, 12, 12, 12, 12, 16, 4, 3], 
+               [3, 0, 0, 11, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 9, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 7, 12, 6, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 19, 19, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 12, 12, 12, 12, 6, 0, 0, 11, 6, 0, 7, 6, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 9, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 0, 10, 0, 9, 9, 9, 0, 0, 5, 0, 0, 0, 9, 0, 0, 19, 3], 
+               [3, 7, 12, 12, 12, 12, 14, 12, 12, 14, 12, 14, 12, 12, 12, 12, 12, 12, 13, 3]]
+
+world_level_2=[[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 9, 0, 0, 0, 0, 0, 3], 
+               [3, 9, 0, 0, 0, 0, 0, 0, 0, 4, 10, 10, 0, 10, 0, 0, 9, 0, 0, 3], 
+               [3, 0, 9, 0, 0, 4, 10, 1, 0, 0, 0, 0, 0, 0, 0, 4, 10, 10, 10, 3], 
+               [3, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 7, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 6, 7, 9, 0, 0, 0, 4, 10, 0, 10, 0, 10, 10, 1, 0, 0, 3], 
+               [3, 0, 0, 6, 6, 10, 10, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 0, 0, 4, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 10, 10, 10, 10, 1, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+               [3, 0, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 3], 
+               [3, 0, 0, 0, 0, 5, 6, 6, 5, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 3], 
+               [3, 5, 5, 5, 5, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 3]]
+
 
 # gameWindow
 screen_width= 1000     # default = 1100
 screen_height=800      # default = 800
 tile_Size=50          #default 100
+tile_size=50
 main_menu=True
 
 # buttons
-
-
 
 screen = pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption("Level "+str(level))
 
 img_List=[]
+img_List_2=[]
+img_List_3=[]
+loaded_list_3=[]
 #load images
 bg_img=pygame.image.load('Images/bg_img.jpeg')
 wall_idx=0
@@ -38,35 +95,88 @@ def loadImages():
         curr_img=pygame.image.load(c_path)
         # print(entries[i])
         img_List.append(curr_img)
-    print("Number of images loaded:"+ str(len(img_List)))
-loadImages()
+    
+    entries = os.listdir('./Images_2')
+    # print(entries[1])
+    for i in range(0,len(entries)):
+        if entries[i]=='bg_img.jpeg' or entries[i] == '.DS_Store':
+            continue 
+        if entries[i] == 'SideWall.png':
+            wall_idx=len(img_List)
+        c_path='Images_2/'
+        c_path+=entries[i]
+        curr_img=pygame.image.load(c_path)
+        # print(entries[i])
+        img_List_2.append(curr_img)
 
+    entries = os.listdir('./Images_3')
+    # print(entries[1])
+    c=0
+    for i in range(0,len(entries)):
+        print(entries[i])
+        if entries[i]=='bg_img.jpeg' or entries[i] == '.DS_Store':
+            continue 
+        c_path='Images_3/'
+        c_path+=entries[i]
+        loaded_list_3.append(entries[i])
+        curr_img=pygame.image.load(c_path)
+        # print(entries[i])
+        img_List_3.append(curr_img)
+    print("Number of images loaded:"+ str(len(img_List)+len(img_List_2)+len(img_List_3)))
+loadImages()
+for c in range(len(loaded_list_3)):
+    print(str(c)+": "+loaded_list_3[c])
 #define game variables
 clicked = False
 white = (255,255,255)
 font = pygame.font.SysFont('Futura',24)
 game_over=0
 
+
+#load sounds
+pygame.mixer.music.load('img/music.wav')
+pygame.mixer.music.set_volume(0.1)
+pygame.mixer.music.play(-1, 0.0, 5000)
+coin_fx = pygame.mixer.Sound('img/coin.wav')
+coin_fx.set_volume(0.5)
+jump_fx = pygame.mixer.Sound('img/jump.wav')
+jump_fx.set_volume(0.5)
+game_over_fx = pygame.mixer.Sound('img/game_over.wav')
+game_over_fx.set_volume(0.5)
+
+#define font
+font = pygame.font.SysFont('Bauhaus 93', 70)
+font_score = pygame.font.SysFont('Bauhaus 93', 30)
+
 #create empty tile list
 world_data= []
 N_row= round(screen_height/tile_Size)
 N_col= round(screen_width/tile_Size)
-# for row in range(N_row):
-#     r = [0] * N_col
-#     world_data.append(r)
-#Loading level1 world data from the file
-# if path.exists(f'level{level}_data'):
-#             pickle_in = open(f'level{level}_data', 'rb')
-#             world_data = pickle.load(pickle_in)
-#             print(world_data)
+
 world_data = [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 2], 
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2], 
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2], 
-              [2, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 11, 11, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 0, 0, 0, 1, 1, 1, 2], 
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
-              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 1, 1, 1, 1, 1, 2], 
+              [2, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 2]]
+world_level_1 = [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
+              [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 11, 11, 0, 0, 0, 0, 0, 2], 
               [2, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
               [2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], 
               [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 0, 0, 0, 0, 0, 0, 2], 
@@ -80,22 +190,85 @@ def draw_text(text,font,col,x,y):
     img = font.render(text, True, col)
     screen.blit(img, (x,y))
 
+#function to reset level
+def reset_level(level):   
+	player.reset(2*tile_Size,screen_height-2*tile_Size)
+	coin_group.empty()
+	exit_group.empty()
+
+	world = World(world_data,level)
+	#create dummy coin for showing the score
+	score_coin = Coin(tile_size//2, tile_size//2)
+	coin_group.add(score_coin)
+	return world
 
 class World():
-    def __init__(self,data):
+    def __init__(self,data,level=1):
         self.tile_list = []  # will store list of images and their rectangle objects (storing coordinate informations)
         #load images
-        for row in range(N_row):
-            for col in range(N_col):
-                # traverse over all the images and see if it matches any image
-                # for i in range(len(img_List)):
-                idx_blk=world_data[row][col]
-                if idx_blk !=0 :
-                    img = pygame.transform.scale(img_List[idx_blk-1],(tile_Size,tile_Size))
-                    img_rect=img.get_rect()
-                    img_rect.x = col * tile_Size
-                    img_rect.y = row * tile_Size
-                    self.tile_list.append( (img,img_rect) )
+        if level==1:
+            for row in range(N_row):
+                for col in range(N_col):
+                    # traverse over all the images and see if it matches any image
+                    # for i in range(len(img_List)):
+                    idx_blk=world_level_1[row][col]
+                    if idx_blk==9:
+                        coin = Coin(col * tile_size + (tile_size // 2), row * tile_size + (tile_size // 2))
+                        coin_group.add(coin)
+                        continue
+                    if idx_blk==8:
+                        exit = Exit(col * tile_size, row * tile_size - (tile_size // 2))
+                        exit_group.add(exit)
+                        continue
+                    if idx_blk !=0 :
+                        img = pygame.transform.scale(img_List[idx_blk-1],(tile_Size,tile_Size))
+                        img_rect=img.get_rect()
+                        img_rect.x = col * tile_Size
+                        img_rect.y = row * tile_Size
+                        self.tile_list.append( (img,img_rect) )
+        elif level==2:
+            for row in range(N_row):
+                for col in range(N_col):
+                    # traverse over all the images and see if it matches any image
+                    # for i in range(len(img_List)):
+                    idx_blk=world_level_2[row][col]
+                    if idx_blk==9:
+                        coin = Coin(col * tile_size + (tile_size // 2), row * tile_size + (tile_size // 2))
+                        coin_group.add(coin)
+                        continue
+                    if idx_blk==8:
+                        exit = Exit(col * tile_size, row * tile_size - (tile_size // 2))
+                        exit_group.add(exit)
+                        continue
+                    if idx_blk !=0 :
+                        img = pygame.transform.scale(img_List_2[idx_blk-1],(tile_Size,tile_Size))
+                        img_rect=img.get_rect()
+                        img_rect.x = col * tile_Size
+                        img_rect.y = row * tile_Size
+                        self.tile_list.append( (img,img_rect) )
+        elif level==3:
+            # print(img_List_3)
+            for row in range(N_row):
+                for col in range(N_col):
+                    # traverse over all the images and see if it matches any image
+                    # for i in range(len(img_List)):
+                    idx_blk=world_level_3[row][col]
+                    if idx_blk==19:
+                        coin = Coin(col * tile_size + (tile_size // 2), row * tile_size + (tile_size // 2))
+                        coin_group.add(coin)
+                        continue
+                    if idx_blk==15:
+                        exit = Exit(col * tile_size, row * tile_size - (tile_size // 2))
+                        exit_group.add(exit)
+                        continue
+                    if idx_blk !=0 :
+                        img = pygame.transform.scale(img_List_3[idx_blk-1],(tile_Size,tile_Size))
+                        img_rect=img.get_rect()
+                        img_rect.x = col * tile_Size
+                        img_rect.y = row * tile_Size
+                        self.tile_list.append( (img,img_rect) )
+
+                
     def draw(self):
         for tile in self.tile_list:
             img = tile[0]
@@ -104,7 +277,9 @@ class World():
             # pygame.draw.rect(screen,(255,255,255),pos,2)
 
 class Player():
-    def __init__(self, x ,y):
+    def __init__(self, x, y):
+        self.reset(x, y)
+    def reset(self, x, y):
         # creating a series of images for moving animation 
         self.images_right = []
         self.images_left = []
@@ -134,6 +309,37 @@ class Player():
         # print(self.rect)
         self.vel_y = 0 # upward velocity on pressing space
         self.jumped = False # Have I jumped or not by pressing the space button
+
+    # def __init__(self, x ,y):
+    #     # creating a series of images for moving animation 
+    #     self.images_right = []
+    #     self.images_left = []
+    #     self.index=0
+    #     self.counter=0 # speed of player animaion
+    #     for num in range(1,9):
+    #         img_right =  pygame.image.load(f'Ball/redBall{num}.png')
+    #         img_right = pygame.transform.scale(img_right,(tile_Size,tile_Size))
+    #         img_left = pygame.transform.flip(img_right, True,False) # flip the image across x axis but not across y axis
+    #         self.images_right.append(img_right)
+    #         self.images_left.append(img_left)
+    #     print(len(self.images_left))
+    #     print(len(self.images_right))
+    #     self.image = self.images_right[self.index]
+    #     self.direction = 0
+    #     #************************ end of animation
+              
+    #     # img = pygame.image.load('Images/red_ball.png')
+    #     # self.image = pygame.transform.scale(img,(tile_Size,tile_Size))
+    #     # print("Image")
+    #     # print(self.image)
+    #     self.rect= self.image.get_rect()
+    #     self.rect.x = x
+    #     self.rect.y = y
+    #     self.width = self.image.get_width()
+    #     self.height = self.image.get_height()
+    #     # print(self.rect)
+    #     self.vel_y = 0 # upward velocity on pressing space
+    #     self.jumped = False # Have I jumped or not by pressing the space button
 
     def update(self,game_over):
         dx = 0
@@ -202,7 +408,10 @@ class Player():
                         dy = tile[1].top - self.rect.bottom
                         self.vel_y = 0
                         self.in_air = False
-
+            #check for collision with exit
+            if pygame.sprite.spritecollide(self, exit_group, False):
+                game_over = 1
+                
             #update player coordinates
             self.rect.x += dx
             self.rect.y += dy
@@ -212,6 +421,7 @@ class Player():
                 self.rect.bottom = screen_height-tile_Size
                 dy=0
                 self.vel_y=0
+            
         
         #draw player on screen
         screen.blit(self.image,self.rect)
@@ -247,8 +457,32 @@ class Button():
 
 		return action
 
+class Coin(pygame.sprite.Sprite):
+	def __init__(self, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		img = pygame.image.load('Images/coin.png')
+		self.image = pygame.transform.scale(img, (round(tile_size//1.5) ,round( tile_size//1.5 )))
+		self.rect = self.image.get_rect()
+		self.rect.center = (x, y)
 
-world = World(world_data)
+class Exit(pygame.sprite.Sprite):
+	def __init__(self, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		img = pygame.image.load('Static_Img/exit.png')
+		self.image = pygame.transform.scale(img, (tile_size, int(tile_size * 1.5)))
+		self.rect = self.image.get_rect()
+		self.rect.x = x
+		self.rect.y = y
+
+coin_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
+
+#create dummy coin for showing the score
+score_coin = Coin(tile_size // 2, tile_size // 2)
+coin_group.add(score_coin)
+
+
+world = World(world_data,level)
 player = Player(2*tile_Size,screen_height-2*tile_Size)        
 run = True
 count = 0
@@ -267,11 +501,30 @@ restart_button = Button(screen_width // 2 - 50, screen_height // 2 + 100, restar
 start_button = Button(screen_width // 2 - 350, screen_height // 2, start_img)
 exit_button = Button(screen_width // 2 + 150, screen_height // 2, exit_img)
 print('Here')
+# subprocess.run("python3 levelSetter.py", shell=True, check=True)
+def drawGridWithTileSize(tile_size):
+    # draw vertical lines
+    N_ver= round(screen_width/tile_size) - 1
+    white=(255,255,255)
+    for i in range(0,N_ver):
+        start_pos=(tile_size*(i+1),0)
+        end_pos=(tile_size*(i+1),screen_height)
+        pygame.draw.line(screen,white,start_pos,end_pos,1)
+    N_hor= round(screen_height/tile_size) - 1
+    # draw horizontal lines
+    for i in range(0,N_hor):
+        start_pos=(0,tile_size*(i+1))
+        end_pos=(screen_width,tile_size*(i+1))
+        pygame.draw.line(screen,white,start_pos,end_pos,1)
+
+score=0
 while run:
     clock.tick(fps)
 
     #draw background
     screen.blit(bg_img,(0,0))
+    #drawGrid
+    # drawGridWithTileSize(tile_Size)
     count +=1
     
     if main_menu == True:
@@ -281,13 +534,40 @@ while run:
             main_menu = False
     else:
         world.draw()
-        game_over=player.update(game_over)
+        if game_over == 0:
+			#update score
+			#check if a coin has been collected
+            if pygame.sprite.spritecollide(player, coin_group, True):
+                score += 1
+                coin_fx.play()
+            draw_text('X ' + str(score), font_score, white, tile_size , 15)
+        coin_group.draw(screen)
+        exit_group.draw(screen)
+        game_over = player.update(game_over)
+
+		#if player has completed the level
+        if game_over == 1:
+			#reset game and go to next level
+            level += 1
+            if level <= 3:
+				#reset level
+                world_data = []
+                world = reset_level(level)
+                game_over = 0
+            else:
+                draw_text('YOU WIN!', font,(255,255,70), (screen_width // 2) - 140, screen_height // 2)
+                if restart_button.draw():
+                    level = 1
+                    world_data = []
+                    world = reset_level(level)
+                    game_over = 0
+                    score = 0
 
     for event in pygame.event.get():
         # quit game
         if event.type == pygame.QUIT:
             run = False
-    print("Here2")
+    # print("Here2")
     #update game display window
     pygame.display.update()
 
